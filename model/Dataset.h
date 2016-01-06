@@ -1,5 +1,7 @@
 #pragma once
 
+#include "DataRendering.h"
+
 #include "utils/LinearBuffer.h"
 #include "utils/Vec2d.h"
 
@@ -68,6 +70,17 @@ public:
     Vec2dFloat *GetNextPoint() { if (m_currPointIndex < m_dataVec.size()) return &(m_dataVec.at(m_currPointIndex++)); else return nullptr; }
 
     unsigned int GetId() { return m_ID; }
+    
+    bool ShouldRendering() { return m_dataRendering.m_visible; }
+
+    DataRendering::Shape GetShape() { return m_dataRendering.m_shape; }
+
+    bool SetRenderAsShape(const unsigned char &shape) {
+        if (shape > (unsigned char) DataRendering::Shape::NumbersOfShape) return false;
+        m_dataRendering.m_shape = (DataRendering::Shape)shape;
+        m_dataRendering.m_visible = true;
+        return true;
+    }
 
 private:
 
@@ -78,6 +91,8 @@ private:
     ArrangeType m_arrangeType;
     
     ElemDataType m_eleType;
+
+    DataRendering m_dataRendering;
 
     // For Cartesian Chart
     std::vector<Vec2dFloat> m_dataVec;

@@ -71,6 +71,8 @@ public:
 
     virtual void OnDataComming(/*const*/ std::unique_ptr<Dataset> &newData) override;
 
+    bool OnSetShowData(unsigned int dataId, unsigned char shape) const;
+
 private:
 
     bool IsPosInRect(const Vec2dFloat &mousePos, const RectF &rect);;

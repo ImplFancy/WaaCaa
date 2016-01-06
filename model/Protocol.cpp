@@ -35,9 +35,9 @@ bool Protocol::IsValidMessage(LinearBuffer &buffer)
 
 unsigned char Protocol::GetRequestMajorAndSubType(LinearBuffer &buffer)
 {
-    unsigned char majorType = buffer.Buffer()[s_header.length() + 10]; // 一共4种，所以占用2bit
+    unsigned char majorType = buffer.Buffer()[s_header.length() + 10];
     unsigned char subType   = buffer.Buffer()[s_header.length() + 11];
-    return ((majorType << 6) | subType);
+    return ((majorType << 5) | subType);
 }
 
 unsigned int Protocol::GetRequestBodyLength(LinearBuffer &buffer)
@@ -123,12 +123,48 @@ void Protocol::ProcessRequestBody(LinearBuffer::Static *pReqBody, unsigned char 
 
         Chart *pChart = WindowService::Instance().FindByIndex(chartIndex);
 
-        if (pChart != nullptr) {
+        if (pChart == nullptr) {
+            respTypeChar = CHART_INDEX_NOT_FOUND;
+            pRespBuffer->Append(&respTypeChar, 1);
+        }
+        else {
+            // TODO: validate dimType/arrangeType/eleType
             std::unique_ptr<Dataset> p(new Dataset((Dataset::Dimension)dimType, (Dataset::ArrangeType)arrangeType,(Dataset::ElemDataType)eleType, dataset, nbBytesOfDataset));
-            p->GetId();
+            auto dataId = p->GetId();
+
+            respTypeChar = ALL_RIGHT;
+            pRespBuffer->Append(&respTypeChar, 1);
+
+            pRespBuffer->AppendOneByte((unsigned char)(dataId >> (3 * 8u)));
+            pRespBuffer->AppendOneByte((unsigned char)((dataId << 1 * 8u) >> (3 * 8u)));
+            pRespBuffer->AppendOneByte((unsigned char)((dataId << 2 * 8u) >> (3 * 8u)));
+            pRespBuffer->AppendOneByte((unsigned char)(dataId & 0xff));
 
             // mvoe Dataset to pChart
             pChart->OnDataComming(p);
+        }
+    }
+    else if (RequestMajorType::D == (RequestMajorType)reqMajorType) {
+        unsigned char chartIndex = *(pReqBody->Buffer());
+        const char *pDataId = pReqBody->Buffer() + 1;
+        unsigned char dataShape = *(pReqBody->Buffer() + 1 + 4);
+        unsigned int dataId = 0;
+        {
+            unsigned char tempByte;
+            tempByte = *(pDataId++); dataId += (tempByte << (3 * 8u));
+            tempByte = *(pDataId++); dataId += (tempByte << (2 * 8u));
+            tempByte = *(pDataId++); dataId += (tempByte << (1 * 8u));
+            tempByte = *(pDataId++); dataId += tempByte;
+        }
+
+        Chart *pChart = WindowService::Instance().FindByIndex(chartIndex);
+
+        if (pChart == nullptr) {
+            respTypeChar = CHART_INDEX_NOT_FOUND;
+            pRespBuffer->Append(&respTypeChar, 1);
+        }
+        else {
+            pChart->OnSetShowData(dataId, dataShape);
         }
     }
 }

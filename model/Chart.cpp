@@ -371,14 +371,21 @@ void Chart::DrawDataContent()
         }
     };
 
-    auto corlorIndex = 0u;
     for (auto &dataset : m_DatasetList) {
-        auto currColor = ColorTheme::GetDefaultTheme().m_DataContentList[corlorIndex++];
         dataset->BeginRetrival();
-        for ( ; ; ) {
-            auto pP = dataset->GetNextPoint();
-            if (pP == nullptr) break;
-            drawCircle(*pP, currColor);
+        if (dataset->ShouldRendering()) {
+            auto &colorList = ColorTheme::GetDefaultTheme().m_DataContentList;
+            // FIXME: color might be the same with diffent dataset
+            auto currColor = colorList[dataset->GetId() % colorList.size()]; 
+            for (; ; ) {
+                auto pP = dataset->GetNextPoint();
+                if (pP == nullptr) break;
+                if (dataset->GetShape()==DataRendering::Shape::CircleDot)
+                    drawCircle(*pP, currColor);
+                else {
+                    // TODO: for other shape
+                }
+            }
         }
     }
 }
@@ -760,4 +767,16 @@ void Chart::SetSuitableViewPort()
     m_transTarget.m_move = 
         Vec2dFloat(m_contentRect.left, m_contentRect.bottom) 
         - modelLbPoint.dotMultiply(m_transTarget.m_scale);
+}
+
+bool Chart::OnSetShowData(unsigned int dataId, unsigned char shape) const
+{
+    for (auto &dataset : m_DatasetList) {
+        if (dataset->GetId() == dataId) {
+            auto ret = dataset->SetRenderAsShape(shape);
+            return ret;
+        }
+    }
+    // not founded
+    return false;
 }

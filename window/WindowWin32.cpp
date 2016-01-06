@@ -197,7 +197,7 @@ LRESULT CALLBACK WindowWin32::MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPAR
         auto userEvent = SystemEvents::ToUserEvent(uMsg);
         Protocol::ProcessRequestBody(
             (LinearBuffer::Static *)wParam,
-            userEvent >> 6, userEvent & 0x3F,
+            userEvent >> 5, userEvent & 0x1F,
             (LinearBuffer *)lParam);
         return SystemEvents::OK;
     }

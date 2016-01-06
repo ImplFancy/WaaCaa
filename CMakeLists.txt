@@ -6,7 +6,6 @@ project(${project_name})
 include_directories(.)
 
 aux_source_directory(entry src_entry)
-
 aux_source_directory(model src_model)
 aux_source_directory(network src_network)
 aux_source_directory(rendering src_rendering)
