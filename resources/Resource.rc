@@ -1,0 +1,8 @@
+#include "resource.h"
+
+IDI_TRAY ICON DISCARDABLE "app.ico"
+
+IDI_boxSelect    IMAGE DISCARDABLE "boxSelect.png"
+IDI_boxZoom      IMAGE DISCARDABLE "boxZoom.png"
+IDI_pan          IMAGE DISCARDABLE "pan.png"
+IDI_reset        IMAGE DISCARDABLE "reset.png"

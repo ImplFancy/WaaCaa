@@ -1,0 +1,4 @@
+#define IDI_TRAY	101
+#define ID_SETTING  40001
+#define ID_EXIT		40002
+#define ID_CLOSE_ALL  40001

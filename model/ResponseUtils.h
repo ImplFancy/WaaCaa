@@ -1,0 +1,14 @@
+#pragma once
+
+enum ResponseType
+{
+    ALL_RIGHT = 0x01,
+
+    INVALID_SOCKET_BODY,
+    INVALID_REQUEST_BODY,
+
+    UNKNOWN_REQUEST = 0x10,
+
+    CREATE_CHART_FAILED,
+    CHART_INDEX_NOT_FOUND
+};
