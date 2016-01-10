@@ -102,46 +102,67 @@ void Protocol::ProcessRequestBody(LinearBuffer::Static *pReqBody, unsigned char 
     }
     else if (RequestMajorType::C == (RequestMajorType)reqMajorType) {
         // Type C:
-        unsigned char dimType = reqSubType;
+        if (reqSubType < 0x10) {
+            // Send Data
+            unsigned char dimType = reqSubType;
 
-        unsigned char chartIndex = *(pReqBody->Buffer());
-        unsigned char arrangeType = *(pReqBody->Buffer() + 1);
-        unsigned char eleType = *(pReqBody->Buffer() + 2);
+            unsigned char chartIndex = *(pReqBody->Buffer());
+            unsigned char arrangeType = *(pReqBody->Buffer() + 1);
+            unsigned char eleType = *(pReqBody->Buffer() + 2);
 
-        const char *lenP = pReqBody->Buffer() + 3;
+            const char *lenP = pReqBody->Buffer() + 3;
 
-        // remember: please use "unsigned char" for temp var, or you need to mask it (e.g. &0xFF0000, &0xFF00, cause C/C++ use "int" by default)
-        unsigned char tempByte;
-        unsigned int nbBytesOfDataset = 0;
-        tempByte = *(lenP++); nbBytesOfDataset += (tempByte << (3 * 8u));
-        tempByte = *(lenP++); nbBytesOfDataset += (tempByte << (2 * 8u));
-        tempByte = *(lenP++); nbBytesOfDataset += (tempByte << (1 * 8u));
-        tempByte = *(lenP++); nbBytesOfDataset += tempByte;
+            // remember: please use "unsigned char" for temp var, or you need to mask it (e.g. &0xFF0000, &0xFF00, cause C/C++ use "int" by default)
+            unsigned char tempByte;
+            unsigned int nbBytesOfDataset = 0;
+            tempByte = *(lenP++); nbBytesOfDataset += (tempByte << (3 * 8u));
+            tempByte = *(lenP++); nbBytesOfDataset += (tempByte << (2 * 8u));
+            tempByte = *(lenP++); nbBytesOfDataset += (tempByte << (1 * 8u));
+            tempByte = *(lenP++); nbBytesOfDataset += tempByte;
 
-        const void *dataset = (const void *)(lenP++);
+            const void *dataset = (const void *)(lenP++);
 
 
-        Chart *pChart = WindowService::Instance().FindByIndex(chartIndex);
+            Chart *pChart = WindowService::Instance().FindByIndex(chartIndex);
 
-        if (pChart == nullptr) {
-            respTypeChar = CHART_INDEX_NOT_FOUND;
-            pRespBuffer->Append(&respTypeChar, 1);
+            if (pChart == nullptr) {
+                respTypeChar = CHART_INDEX_NOT_FOUND;
+                pRespBuffer->Append(&respTypeChar, 1);
+            }
+            else {
+                // TODO: validate dimType/arrangeType/eleType
+                std::unique_ptr<Dataset> p(new Dataset((Dataset::Dimension)dimType, (Dataset::ArrangeType)arrangeType,(Dataset::ElemDataType)eleType, dataset, nbBytesOfDataset));
+                auto dataId = p->GetId();
+
+                respTypeChar = ALL_RIGHT;
+                pRespBuffer->Append(&respTypeChar, 1);
+
+                pRespBuffer->AppendOneByte((unsigned char)(dataId >> (3 * 8u)));
+                pRespBuffer->AppendOneByte((unsigned char)((dataId << 1 * 8u) >> (3 * 8u)));
+                pRespBuffer->AppendOneByte((unsigned char)((dataId << 2 * 8u) >> (3 * 8u)));
+                pRespBuffer->AppendOneByte((unsigned char)(dataId & 0xff));
+
+                // mvoe Dataset to pChart
+                pChart->OnDataComming(p);
+            }
+        }
+        else if (reqSubType == 0x11) {
+            // clear all data
+            unsigned char chartIndex = *(pReqBody->Buffer());
+
+            Chart *pChart = WindowService::Instance().FindByIndex(chartIndex);
+
+            if (pChart == nullptr) {
+                respTypeChar = CHART_INDEX_NOT_FOUND;
+                pRespBuffer->Append(&respTypeChar, 1);
+            }
+            else {
+                pChart->ClearAllDataset();
+            }
         }
         else {
-            // TODO: validate dimType/arrangeType/eleType
-            std::unique_ptr<Dataset> p(new Dataset((Dataset::Dimension)dimType, (Dataset::ArrangeType)arrangeType,(Dataset::ElemDataType)eleType, dataset, nbBytesOfDataset));
-            auto dataId = p->GetId();
-
-            respTypeChar = ALL_RIGHT;
+            respTypeChar = UNKNOWN_REQUEST;
             pRespBuffer->Append(&respTypeChar, 1);
-
-            pRespBuffer->AppendOneByte((unsigned char)(dataId >> (3 * 8u)));
-            pRespBuffer->AppendOneByte((unsigned char)((dataId << 1 * 8u) >> (3 * 8u)));
-            pRespBuffer->AppendOneByte((unsigned char)((dataId << 2 * 8u) >> (3 * 8u)));
-            pRespBuffer->AppendOneByte((unsigned char)(dataId & 0xff));
-
-            // mvoe Dataset to pChart
-            pChart->OnDataComming(p);
         }
     }
     else if (RequestMajorType::D == (RequestMajorType)reqMajorType) {

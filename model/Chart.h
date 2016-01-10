@@ -71,6 +71,8 @@ public:
 
     virtual void OnDataComming(/*const*/ std::unique_ptr<Dataset> &newData) override;
 
+    void ClearAllDataset();
+
     bool OnSetShowData(unsigned int dataId, unsigned char shape) const;
 
 private:

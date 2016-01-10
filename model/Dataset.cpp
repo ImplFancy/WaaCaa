@@ -66,8 +66,7 @@ Dataset::Dataset(const Dimension &dim, const ArrangeType &arrangeType, const Ele
             if (v.y > maxY) { maxY = v.y; }
         }
     }
-
-    static unsigned int s_DatasetId(1);
+    
     m_ID = s_DatasetId++;
 }
 
@@ -90,3 +89,5 @@ Dataset::ElemDataType Dataset::ElemType()
 {
     return m_eleType;
 }
+
+unsigned int Dataset::s_DatasetId = 1u;

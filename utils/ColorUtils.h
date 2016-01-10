@@ -16,7 +16,7 @@ struct WaaColour
         
     };
 
-    WaaColour SetAlpha(float alpha) {
+    WaaColour SetAlpha(const float &alpha) const {
         return WaaColour(m_rgb, alpha);
     }
 

@@ -82,6 +82,10 @@ public:
         return true;
     }
 
+    static void ResetUnusedId() {
+        s_DatasetId = 1u;
+    }
+
 private:
 
     unsigned int m_ID;
@@ -100,5 +104,6 @@ private:
 
     float minX, maxX, minY, maxY;
 
+    static unsigned int s_DatasetId;
 };
 

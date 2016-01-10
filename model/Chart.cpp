@@ -308,13 +308,13 @@ void Chart::DrawAxisBackground()
 
 void Chart::DrawDataContent()
 {
-    auto needToDrawFunc = [&](const Vec2dFloat point, const RectF contentRect) -> bool {
+    auto needToDrawFunc = [&](const Vec2dFloat &point, const RectF &contentRect) -> bool {
         if (point.x != point.x) return false; // NaN
         if (point.y != point.y) return false; // NaN
         return !(point.x < contentRect.left || point.x > contentRect.right || point.y < contentRect.top || point.y > contentRect.bottom);
     };
 
-    auto drawCircle = [&](const Vec2dFloat &pointOrig, WaaColour color) {
+    auto drawCircle = [&](const Vec2dFloat &pointOrig, const WaaColour &color) {
         auto point = pointOrig * m_transCurr.GetTransMatrix();
         if (needToDrawFunc(point, m_contentRect)) {
             m_pRenderTarget->FillRound(point, color.SetAlpha(0.8));
@@ -372,18 +372,30 @@ void Chart::DrawDataContent()
     };
 
     for (auto &dataset : m_DatasetList) {
-        dataset->BeginRetrival();
         if (dataset->ShouldRendering()) {
             auto &colorList = ColorTheme::GetDefaultTheme().m_DataContentList;
             // FIXME: color might be the same with diffent dataset
-            auto currColor = colorList[dataset->GetId() % colorList.size()]; 
-            for (; ; ) {
-                auto pP = dataset->GetNextPoint();
-                if (pP == nullptr) break;
-                if (dataset->GetShape()==DataRendering::Shape::CircleDot)
+            auto currColor = colorList[dataset->GetId() % colorList.size()];
+            if (DataRendering::Shape::CircleDot == dataset->GetShape()) {
+                dataset->BeginRetrival();
+                for (; ; ) {
+                    auto pP = dataset->GetNextPoint();
+                    if (pP == nullptr) break;
                     drawCircle(*pP, currColor);
-                else {
-                    // TODO: for other shape
+                }
+            }
+            else if (DataRendering::Shape::Line == dataset->GetShape()) {
+                if (Dataset::Dimension::_1D == dataset->Dim() && dataset->GetNbOfDataPoint() > 1) {
+                    dataset->BeginRetrival();
+                    Vec2dFloat lastPoint = *dataset->GetNextPoint() * m_transCurr.GetTransMatrix();
+                    for (Vec2dFloat *pP = dataset->GetNextPoint(); pP != nullptr;
+                        pP = dataset->GetNextPoint()) {
+                        auto point = *pP * m_transCurr.GetTransMatrix();
+                        if (needToDrawFunc(point, m_contentRect) && needToDrawFunc(lastPoint, m_contentRect)) {
+                            m_pRenderTarget->DrawLine(lastPoint, point, currColor);
+                        }
+                        lastPoint = point;
+                    }
                 }
             }
         }
@@ -699,6 +711,12 @@ void Chart::OnDataComming(/*const*/ std::unique_ptr<Dataset> &newData)
     m_DatasetList.push_back(std::move(newData));
 
     SetSuitableViewPort();
+}
+
+void Chart::ClearAllDataset()
+{
+    m_DatasetList.clear();
+    Dataset::ResetUnusedId();
 }
 
 bool Chart::IsPosInRect(const Vec2dFloat &mousePos, const RectF &rect)
