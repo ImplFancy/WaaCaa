@@ -58,6 +58,7 @@ void Chart::DrawChartBackground()
     }
 
     // Mouse Info, Pixel
+    if (0)
     {
         wchar_t *out = L"Mouse Pos (px):";
 
@@ -91,6 +92,7 @@ void Chart::DrawChartBackground()
     }
 
     // Mouse Info, Real world
+    if(0)
     {
         m_pRenderTarget->SetTransform(m_transCurr.GetTransMatrix());
         auto invertMatrix = m_pRenderTarget->GetTransformAndInvert();
@@ -396,6 +398,12 @@ void Chart::DrawDataContent()
                         }
                         lastPoint = point;
                     }
+                }
+                else if (Dataset::Dimension::_2D == dataset->Dim() && dataset->GetNbOfDataPoint() > 1) {
+                    dataset->BeginRetrival();
+                    Vec2dFloat point_1 = *dataset->GetNextPoint() * m_transCurr.GetTransMatrix();
+                    Vec2dFloat point_2 = *dataset->GetNextPoint() * m_transCurr.GetTransMatrix();
+                    m_pRenderTarget->DrawLine(point_1, point_2, currColor);
                 }
             }
         }
