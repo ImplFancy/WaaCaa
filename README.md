@@ -3,8 +3,13 @@ WaaCaa is a native 2d/1d data plotting service with socket(TCP) API, so that you
 
 
 ## Gallery
+↓ WaaCaa is running as a service (on Windows 7)
+![alt tag](doc/readme_systemtray_win32.png)
+↓ Scatter Diagram
 ![alt tag](doc/readme_dots.png)
+↓ Ploting 3 lines
 ![alt tag](doc/readme_lines.png)
+↓ Mouse interaction
 ![alt tag](doc/readme_mouse_action.gif)
 
 
