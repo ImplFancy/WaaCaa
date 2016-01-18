@@ -13,7 +13,8 @@ Chart::Chart(WindowInterface *pWindow) :
     m_pWindow(pWindow),
     m_pRenderTarget(nullptr),
     m_ChartType(MainChartType::Cartesian),
-    m_MouseDragMode(MouseDragMode::PanInContent)
+    m_MouseDragMode(MouseDragMode::PanInContent),
+    m_holdViewPort(false)
 {
     static unsigned char s_chartIndex(1);
 
@@ -400,6 +401,9 @@ void Chart::DrawDataContent()
                     }
                 }
                 else if (Dataset::Dimension::_2D == dataset->Dim() && dataset->GetNbOfDataPoint() > 1) {
+                    // TODO: 
+                    // https://msdn.microsoft.com/en-us/library/windows/desktop/dd756675(v=vs.85).aspx
+                    // https://msdn.microsoft.com/en-us/library/windows/desktop/ee329947(v=vs.85).aspx
                     dataset->BeginRetrival();
                     Vec2dFloat point_1 = *dataset->GetNextPoint() * m_transCurr.GetTransMatrix();
                     Vec2dFloat point_2 = *dataset->GetNextPoint() * m_transCurr.GetTransMatrix();
@@ -740,7 +744,7 @@ void Chart::SetSuitableViewPort()
 {
     if (m_DatasetList.empty()) return;
 
-    // TODO: considering if (m_ChartSubType == SubType::DrawOneWave) 
+    if (m_holdViewPort) return;
 
     float minY, minX, maxY, maxX;
 

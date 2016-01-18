@@ -145,4 +145,6 @@ private:
     bool m_isDragStart;
     Vec2dFloat m_DragPosStart;
 
+    // view port about
+    bool m_holdViewPort;
 };
