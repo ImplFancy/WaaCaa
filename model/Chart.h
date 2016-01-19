@@ -11,7 +11,7 @@
 #include "window/WindowInterface.h"
 
 #include <string>
-#include <vector>
+#include <list>
 #include <memory>
 #include "Toolbar.h"
 
@@ -71,6 +71,12 @@ public:
 
     virtual void OnDataComming(/*const*/ std::unique_ptr<Dataset> &newData) override;
 
+    void SetMaxNbDataset(const unsigned char &num);
+
+    void SetViewport(const float &top, const float &bottom, const float &left, const float &right);
+
+    void SetViewportHoldOrNot(const bool &b) { m_holdViewPort = b; }
+
     void ClearAllDataset();
 
     bool OnSetShowData(unsigned int dataId, unsigned char shape) const;
@@ -80,6 +86,7 @@ private:
     bool IsPosInRect(const Vec2dFloat &mousePos, const RectF &rect);;
 
     void SetSuitableViewPort();
+
 
 private:
     // Chart Index Number (ID number)
@@ -91,7 +98,7 @@ private:
 
     std::wstring m_title;
 
-    std::vector<std::unique_ptr<Dataset> > m_DatasetList;
+    std::list<std::unique_ptr<Dataset> > m_DatasetList;
 
     Vec2dUint m_windowSize;
 
@@ -147,4 +154,7 @@ private:
 
     // view port about
     bool m_holdViewPort;
+
+    // m_DatasetList about
+    unsigned char m_maxNbDataset;
 };

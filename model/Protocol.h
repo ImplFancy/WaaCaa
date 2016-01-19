@@ -13,7 +13,7 @@ public:
 
     static bool IsValidMessage(LinearBuffer &buffer);
 
-    static unsigned char GetRequestMajorAndSubType(LinearBuffer &buffer);
+    static unsigned int GetRequestMajorAndSubType(LinearBuffer &buffer);
 
     static unsigned int GetRequestBodyLength(LinearBuffer &buffer);
 

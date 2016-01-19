@@ -22,6 +22,10 @@ enum class RequestSubTypeB : unsigned char
     // Type B: Chart about
     SetChartTitle = 0x10,
     SetChartUiTheme,
+    SetMaxNbDataset = 0x20,
+    SetViewportHoldOn = 0x30,
+    SetViewportHoldOff = 0x31,
+    SetViewport = 0x32,
 };
 
 enum class RequestSubTypeC : unsigned char

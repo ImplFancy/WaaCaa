@@ -14,7 +14,8 @@ Chart::Chart(WindowInterface *pWindow) :
     m_pRenderTarget(nullptr),
     m_ChartType(MainChartType::Cartesian),
     m_MouseDragMode(MouseDragMode::PanInContent),
-    m_holdViewPort(false)
+    m_holdViewPort(false),
+    m_maxNbDataset(0u)
 {
     static unsigned char s_chartIndex(1);
 
@@ -486,7 +487,9 @@ void Chart::OnResize(unsigned int width, unsigned int height)
         m_pRenderTarget->Resize(width, height);
     }
 
-    SetSuitableViewPort();
+    if (!m_holdViewPort) {
+        SetSuitableViewPort();
+    }
 }
 
 void Chart::OnMouseLButtonDown(unsigned int width, unsigned int height)
@@ -720,9 +723,51 @@ void Chart::OnWheel(const Vec2dFloat mousePos, short delta)
 
 void Chart::OnDataComming(/*const*/ std::unique_ptr<Dataset> &newData)
 {
+    if (m_maxNbDataset == 1) newData->ResetUnusedId();
+
     m_DatasetList.push_back(std::move(newData));
 
-    SetSuitableViewPort();
+    if (!m_holdViewPort) {
+        SetSuitableViewPort();
+    }
+
+    // check the current numbers of dataset
+    if (m_maxNbDataset > 0) {
+        for (; ; ) {
+            if (m_DatasetList.size() > m_maxNbDataset) m_DatasetList.pop_front();
+            else break;
+        }
+    }
+}
+
+void Chart::SetMaxNbDataset(const unsigned char &num)
+{
+    m_maxNbDataset = num;
+}
+
+void Chart::SetViewport(const float &top, const float &bottom, const float &left, const float &right)
+{
+    m_transTarget.m_scale.x = m_contentRect.AbsWidth() / fabs(right - left) * .9f;
+    m_transTarget.m_scale.y = m_contentRect.AbsHeight() / fabs(bottom - top) * .9f;
+
+    /*
+    TODO: handle out-of-range of m_transTarget.m_scale
+    */
+
+    if (OS::s_Type == OS::Type::OS_WIN32) {
+        m_transTarget.m_scale.y *= -1;
+    }
+
+    // left-bottom (math coordinate system)
+    Vec2dFloat modelLbPoint = {
+        (right + left) / 2.f - (right - left) / .9f / 2.f,
+        (bottom + top) / 2.f - (bottom - top) / .9f / 2.f
+    };
+
+    // movement vector (screen coordinate system)
+    m_transTarget.m_move =
+        Vec2dFloat(m_contentRect.left, m_contentRect.bottom)
+        - modelLbPoint.dotMultiply(m_transTarget.m_scale);
 }
 
 void Chart::ClearAllDataset()
@@ -743,8 +788,6 @@ bool Chart::IsPosInRect(const Vec2dFloat &mousePos, const RectF &rect)
 void Chart::SetSuitableViewPort()
 {
     if (m_DatasetList.empty()) return;
-
-    if (m_holdViewPort) return;
 
     float minY, minX, maxY, maxX;
 

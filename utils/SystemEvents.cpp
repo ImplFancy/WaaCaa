@@ -8,14 +8,14 @@
 #endif
 
 
-unsigned int SystemEvents::ToSystemEvent(unsigned int userEvent)
+unsigned int SystemEvents::ToSystemEvent(unsigned short userEvent)
 {
-    return WM_USER + userEvent;
+    return WM_APP + userEvent;
 }
 
-unsigned int SystemEvents::ToUserEvent(unsigned int sysEvent)
+unsigned short SystemEvents::ToUserEvent(unsigned int sysEvent)
 {
-    return sysEvent - WM_USER;
+    return sysEvent - WM_APP;
 }
 
 SystemEvents::RetType SystemEvents::SendOneMessage(unsigned int message, const char *pParam, const char *lParam)

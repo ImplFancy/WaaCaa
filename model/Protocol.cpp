@@ -33,11 +33,11 @@ bool Protocol::IsValidMessage(LinearBuffer &buffer)
     return true;
 }
 
-unsigned char Protocol::GetRequestMajorAndSubType(LinearBuffer &buffer)
+unsigned int Protocol::GetRequestMajorAndSubType(LinearBuffer &buffer)
 {
     unsigned char majorType = buffer.Buffer()[s_header.length() + 10];
     unsigned char subType   = buffer.Buffer()[s_header.length() + 11];
-    return ((majorType << 5) | subType);
+    return (majorType << 8) + subType;
 }
 
 unsigned int Protocol::GetRequestBodyLength(LinearBuffer &buffer)
@@ -98,7 +98,34 @@ void Protocol::ProcessRequestBody(LinearBuffer::Static *pReqBody, unsigned char 
         }
     }
     else if (RequestMajorType::B == (RequestMajorType)reqMajorType) {
+        // Type B:
+        unsigned char chartIndex = *(pReqBody->Buffer());
+        Chart *pChart = WindowService::Instance().FindByIndex(chartIndex);
+        if (pChart == nullptr) {
+            respTypeChar = CHART_INDEX_NOT_FOUND;
+            pRespBuffer->Append(&respTypeChar, 1);
+        }
 
+        if (RequestSubTypeB::SetMaxNbDataset == (RequestSubTypeB)reqSubType) {
+            pChart->SetMaxNbDataset((unsigned char)(*(pReqBody->Buffer() + 1)));
+        }
+        else if (RequestSubTypeB::SetViewportHoldOn == (RequestSubTypeB)reqSubType) {
+            pChart->SetViewportHoldOrNot(true);
+        }
+        else if (RequestSubTypeB::SetViewportHoldOff == (RequestSubTypeB)reqSubType) {
+            pChart->SetViewportHoldOrNot(false);
+        }
+        else if (RequestSubTypeB::SetViewport == (RequestSubTypeB)reqSubType) {
+            float *a = (float *)(pReqBody->Buffer() + 1 + 4*0);
+            float *b = (float *)(pReqBody->Buffer() + 1 + 4*1);
+            float *c = (float *)(pReqBody->Buffer() + 1 + 4*2);
+            float *d = (float *)(pReqBody->Buffer() + 1 + 4*3);
+            pChart->SetViewport(*a, *b, *c, *d);
+        }
+        else {
+            respTypeChar = UNKNOWN_REQUEST;
+            pRespBuffer->Append(&respTypeChar, 1);
+        }
     }
     else if (RequestMajorType::C == (RequestMajorType)reqMajorType) {
         // Type C:
@@ -157,6 +184,8 @@ void Protocol::ProcessRequestBody(LinearBuffer::Static *pReqBody, unsigned char 
                 pRespBuffer->Append(&respTypeChar, 1);
             }
             else {
+                respTypeChar = ALL_RIGHT;
+                pRespBuffer->Append(&respTypeChar, 1);
                 pChart->ClearAllDataset();
             }
         }
@@ -185,6 +214,8 @@ void Protocol::ProcessRequestBody(LinearBuffer::Static *pReqBody, unsigned char 
             pRespBuffer->Append(&respTypeChar, 1);
         }
         else {
+            respTypeChar = ALL_RIGHT;
+            pRespBuffer->Append(&respTypeChar, 1);
             pChart->OnSetShowData(dataId, dataShape);
         }
     }

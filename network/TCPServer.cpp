@@ -46,7 +46,7 @@ void TCPServer::Process()
         // SOCKET Select
         auto ret = select(max_fd + 1, &readFDs, nullptr, nullptr, &to);
         if (ret < 0) {
-            // Log::e() << "Select failed";
+            Log::e() << "Select failed";
             // Sleep(1000);
             // m_bStop = true;
         }

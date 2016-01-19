@@ -191,13 +191,13 @@ LRESULT CALLBACK WindowWin32::WndProc(HWND hWnd, UINT message, WPARAM wParam, LP
 
 LRESULT CALLBACK WindowWin32::MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
-    if (uMsg >= WM_USER && uMsg <= WM_USER + 0xff) {
-        SetForegroundWindow(hWnd);
+    if (uMsg > WM_APP && uMsg < WM_APP + 0x0500) {
+        //SetForegroundWindow(hWnd);
 
         auto userEvent = SystemEvents::ToUserEvent(uMsg);
         Protocol::ProcessRequestBody(
             (LinearBuffer::Static *)wParam,
-            userEvent >> 5, userEvent & 0x1F,
+            userEvent >> 8, userEvent & 0xFF,
             (LinearBuffer *)lParam);
         return SystemEvents::OK;
     }
