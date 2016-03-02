@@ -17,9 +17,13 @@ NetworkService::~NetworkService()
 
 bool NetworkService::Initialize()
 {
-    m_pTCPServer.reset(new TCPServer(NetworkSettings::Get().GetLocalPort()));
+    bool isFailed(false);
+    m_pTCPServer.reset(new TCPServer(NetworkSettings::Get().GetLocalPort(), isFailed));
+    if (isFailed) {
+        return false;
+    }
+    
     m_workThread.reset(new std::thread(std::bind(&TCPServer::Process, m_pTCPServer)));
-
     return true;
 }
 

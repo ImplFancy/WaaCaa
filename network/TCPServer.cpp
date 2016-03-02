@@ -10,13 +10,20 @@
 
 
 
-TCPServer::TCPServer(const int port)
+TCPServer::TCPServer(const int port, /*out*/ bool &isFailed)
 {
 #ifdef TARGET_WINDOWS
     WSADATA wsaData;
     WSAStartup(MAKEWORD(2, 2), &wsaData);
 #endif
     m_serverSocket = Create(port, false, 5);
+    
+    if (m_serverSocket == INVALID_SOCKET) {
+        isFailed = true;
+    }
+    else {
+        isFailed = false;
+    }
 
     m_connections.clear();
 }

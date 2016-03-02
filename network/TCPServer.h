@@ -7,7 +7,7 @@ class TCPConnection;
 class TCPServer 
 {
 public:
-    TCPServer(const int port);
+    TCPServer(const int port, /*out*/ bool &isFailed);
     ~TCPServer();
 
     virtual void Process() ;

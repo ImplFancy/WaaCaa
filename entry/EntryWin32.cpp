@@ -25,14 +25,13 @@ int WINAPI WinMain(HINSTANCE , HINSTANCE , LPSTR, int )
         return -1;
     }
 
-    WindowService::Instance().Initialize();
-    NetworkService::Instance().Initialize();
-
-    MainLoop();
-
-    NetworkService::Instance().DeInitialize();
-    WindowService::Instance().DeInitialize();
-
+    if (WindowService::Instance().Initialize()) {
+        if (NetworkService::Instance().Initialize()) {
+            MainLoop();
+            NetworkService::Instance().DeInitialize();
+        }
+        WindowService::Instance().DeInitialize();
+    }
 
     CoUninitialize();
 
