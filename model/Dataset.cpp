@@ -26,7 +26,15 @@ Dataset::Dataset(const Dimension &dim, const ArrangeType &arrangeType, const Ele
 
     auto len = dataLengthInBytes / s_NbBytesOfElemDataType[(unsigned char)m_eleType];
     if (m_dim == Dimension::_1D) {
-        if (m_eleType == ElemDataType::_ElemFloat32) {
+        if (m_eleType == ElemDataType::_ElemFloat64) {
+            const double *pFloat = (const double *)srcDataBuffer;
+            unsigned int stepOfOneValue = 1u;
+            for (auto index = 0u; index < len; index++) {
+                m_dataVec.push_back(Vec2dFloat(index, *pFloat));
+                pFloat++;
+            }
+        }
+        else if (m_eleType == ElemDataType::_ElemFloat32) {
             const float *pFloat = (const float *)srcDataBuffer;
             unsigned int stepOfOneValue = 1u;
             for (auto index = 0u; index < len; index++) {
